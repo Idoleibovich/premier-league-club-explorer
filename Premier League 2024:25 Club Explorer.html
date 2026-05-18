@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Premier League 2024/25 Club Explorer</title>
+
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f0ea;
+      margin: 0;
+      padding: 28px;
+      color: #111;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: auto;
+      background: white;
+      padding: 30px 45px;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 6px 0;
+      font-size: 34px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #444;
+      margin-bottom: 28px;
+      font-size: 17px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    select,
+    button {
+      padding: 9px 13px;
+      font-size: 14px;
+      border-radius: 7px;
+      border: 1px solid #aaa;
+      background: white;
+    }
+
+    select {
+      min-width: 145px;
+    }
+
+    button {
+      cursor: pointer;
+      background: #37003c;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #5a0a63;
+    }
+
+    #chart {
+      width: 100%;
+      height: 720px;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.45;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .source {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 22px 18px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      #chart {
+        height: 650px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Premier League 2024/25 Club Explorer</h1>
+
+    <div class="subtitle">
+      Stadium capacity, average attendance, and matchday demand by club
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="regionFilter">Region:</label>
+        <select id="regionFilter">
+          <option value="All">All</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="capacityFilter">Capacity tier:</label>
+        <select id="capacityFilter">
+          <option value="All">All</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="demandFilter">Demand tier:</label>
+        <select id="demandFilter">
+          <option value="All">All</option>
+        </select>
+      </div>
+
+      <button onclick="resetFilters()">Reset filters</button>
+    </div>
+
+    <div id="chart"></div>
+
+    <div class="note">
+      Interaction: use the dropdown filters to compare clubs by region, stadium size tier,
+      and attendance demand tier. Hovering over each bubble shows exact club details.
+    </div>
+
+    <div class="source">
+      Source: Premier League 2024/25 club list, stadium capacity data, and average attendance data.
+      Visualization created using HTML, JavaScript, Plotly.js, and VS Code.
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      {
+        club: "Arsenal",
+        stadium: "Emirates Stadium",
+        region: "London",
+        capacity: 60704,
+        attendance: 60251,
+        utilization: 99.3,
+        capacityTier: "60k+",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Aston Villa",
+        stadium: "Villa Park",
+        region: "Midlands",
+        capacity: 42682,
+        attendance: 41873,
+        utilization: 98.1,
+        capacityTier: "40k-60k",
+        demandTier: "Very high"
+      },
+      {
+        club: "AFC Bournemouth",
+        stadium: "Vitality Stadium",
+        region: "South Coast",
+        capacity: 11307,
+        attendance: 11214,
+        utilization: 99.2,
+        capacityTier: "Under 30k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Brentford",
+        stadium: "Gtech Community Stadium",
+        region: "London",
+        capacity: 17250,
+        attendance: 17185,
+        utilization: 99.6,
+        capacityTier: "Under 30k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Brighton & Hove Albion",
+        stadium: "Falmer Stadium",
+        region: "South Coast",
+        capacity: 31800,
+        attendance: 31482,
+        utilization: 99.0,
+        capacityTier: "30k-40k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Chelsea",
+        stadium: "Stamford Bridge",
+        region: "London",
+        capacity: 40343,
+        attendance: 39672,
+        utilization: 98.3,
+        capacityTier: "40k-60k",
+        demandTier: "Very high"
+      },
+      {
+        club: "Crystal Palace",
+        stadium: "Selhurst Park",
+        region: "London",
+        capacity: 25486,
+        attendance: 25063,
+        utilization: 98.3,
+        capacityTier: "Under 30k",
+        demandTier: "Very high"
+      },
+      {
+        club: "Everton",
+        stadium: "Goodison Park",
+        region: "North West",
+        capacity: 39414,
+        attendance: 39173,
+        utilization: 99.4,
+        capacityTier: "30k-40k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Fulham",
+        stadium: "Craven Cottage",
+        region: "London",
+        capacity: 29600,
+        attendance: 26826,
+        utilization: 90.6,
+        capacityTier: "Under 30k",
+        demandTier: "High"
+      },
+      {
+        club: "Ipswich Town",
+        stadium: "Portman Road",
+        region: "East",
+        capacity: 29673,
+        attendance: 29742,
+        utilization: 100.2,
+        capacityTier: "Under 30k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Leicester City",
+        stadium: "King Power Stadium",
+        region: "Midlands",
+        capacity: 32262,
+        attendance: 31448,
+        utilization: 97.5,
+        capacityTier: "30k-40k",
+        demandTier: "Very high"
+      },
+      {
+        club: "Liverpool",
+        stadium: "Anfield",
+        region: "North West",
+        capacity: 61276,
+        attendance: 60330,
+        utilization: 98.5,
+        capacityTier: "60k+",
+        demandTier: "Very high"
+      },
+      {
+        club: "Manchester City",
+        stadium: "Etihad Stadium",
+        region: "North West",
+        capacity: 53400,
+        attendance: 52847,
+        utilization: 99.0,
+        capacityTier: "40k-60k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Manchester United",
+        stadium: "Old Trafford",
+        region: "North West",
+        capacity: 74310,
+        attendance: 73747,
+        utilization: 99.2,
+        capacityTier: "60k+",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Newcastle United",
+        stadium: "St James' Park",
+        region: "North East",
+        capacity: 52305,
+        attendance: 52186,
+        utilization: 99.8,
+        capacityTier: "40k-60k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Nottingham Forest",
+        stadium: "City Ground",
+        region: "Midlands",
+        capacity: 30332,
+        attendance: 30059,
+        utilization: 99.1,
+        capacityTier: "30k-40k",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Southampton",
+        stadium: "St Mary's Stadium",
+        region: "South Coast",
+        capacity: 32384,
+        attendance: 30868,
+        utilization: 95.3,
+        capacityTier: "30k-40k",
+        demandTier: "Very high"
+      },
+      {
+        club: "Tottenham Hotspur",
+        stadium: "Tottenham Hotspur Stadium",
+        region: "London",
+        capacity: 62850,
+        attendance: 61127,
+        utilization: 97.3,
+        capacityTier: "60k+",
+        demandTier: "Very high"
+      },
+      {
+        club: "West Ham United",
+        stadium: "London Stadium",
+        region: "London",
+        capacity: 62500,
+        attendance: 62464,
+        utilization: 99.9,
+        capacityTier: "60k+",
+        demandTier: "Near sold out"
+      },
+      {
+        club: "Wolverhampton Wanderers",
+        stadium: "Molineux Stadium",
+        region: "Midlands",
+        capacity: 31750,
+        attendance: 30660,
+        utilization: 96.6,
+        capacityTier: "30k-40k",
+        demandTier: "Very high"
+      }
+    ];
+
+    function addOptions(selectId, values) {
+      const select = document.getElementById(selectId);
+
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    const regions = [...new Set(data.map(d => d.region))].sort();
+
+    const capacityTierOrder = ["Under 30k", "30k-40k", "40k-60k", "60k+"];
+    const capacityTiers = capacityTierOrder.filter(tier =>
+      data.some(d => d.capacityTier === tier)
+    );
+
+    const demandTierOrder = ["High", "Very high", "Near sold out"];
+    const demandTiers = demandTierOrder.filter(tier =>
+      data.some(d => d.demandTier === tier)
+    );
+
+    addOptions("regionFilter", regions);
+    addOptions("capacityFilter", capacityTiers);
+    addOptions("demandFilter", demandTiers);
+
+    function getFilteredData() {
+      const selectedRegion = document.getElementById("regionFilter").value;
+      const selectedCapacity = document.getElementById("capacityFilter").value;
+      const selectedDemand = document.getElementById("demandFilter").value;
+
+      return data.filter(d => {
+        const regionMatch = selectedRegion === "All" || d.region === selectedRegion;
+        const capacityMatch = selectedCapacity === "All" || d.capacityTier === selectedCapacity;
+        const demandMatch = selectedDemand === "All" || d.demandTier === selectedDemand;
+
+        return regionMatch && capacityMatch && demandMatch;
+      });
+    }
+
+    function getLabelPositions(filtered) {
+      const positions = [
+        "top center",
+        "bottom center",
+        "middle right",
+        "middle left",
+        "top right",
+        "top left",
+        "bottom right",
+        "bottom left"
+      ];
+
+      return filtered.map((d, i) => positions[i % positions.length]);
+    }
+
+    function drawChart() {
+      const filtered = getFilteredData();
+
+      if (filtered.length === 0) {
+        Plotly.newPlot("chart", [], {
+          title: {
+            text: "No clubs match the selected filters",
+            font: { size: 24, color: "#333" }
+          },
+          xaxis: { visible: false },
+          yaxis: { visible: false },
+          plot_bgcolor: "white",
+          paper_bgcolor: "white",
+          annotations: [
+            {
+              text: "Try changing or resetting the filters.",
+              x: 0.5,
+              y: 0.5,
+              xref: "paper",
+              yref: "paper",
+              showarrow: false,
+              font: { size: 16, color: "#555" }
+            }
+          ]
+        });
+
+        return;
+      }
+
+      const trace = {
+        x: filtered.map(d => d.capacity),
+        y: filtered.map(d => d.attendance),
+        text: filtered.map(d => d.club),
+        mode: "markers+text",
+        type: "scatter",
+
+        textposition: getLabelPositions(filtered),
+
+        textfont: {
+          size: 11,
+          color: "#333"
+        },
+
+        marker: {
+          size: filtered.map(d => Math.max(18, d.utilization * 0.36)),
+          color: filtered.map(d => d.utilization),
+          colorscale: [
+            [0, "#f7c6c7"],
+            [0.5, "#e85d75"],
+            [1, "#37003c"]
+          ],
+          cmin: 90,
+          cmax: 101,
+          showscale: true,
+          colorbar: {
+            title: {
+              text: "Utilization %",
+              side: "top"
+            },
+            thickness: 18,
+            len: 0.74,
+            x: 1.04
+          },
+          line: {
+            color: "white",
+            width: 1.5
+          }
+        },
+
+        customdata: filtered.map(d => [
+          d.stadium,
+          d.region,
+          d.capacityTier,
+          d.demandTier,
+          d.utilization
+        ]),
+
+        hovertemplate:
+          "<b>%{text}</b><br>" +
+          "Stadium: %{customdata[0]}<br>" +
+          "Region: %{customdata[1]}<br>" +
+          "Capacity: %{x:,}<br>" +
+          "Average attendance: %{y:,}<br>" +
+          "Utilization: %{customdata[4]}%<br>" +
+          "Capacity tier: %{customdata[2]}<br>" +
+          "Demand tier: %{customdata[3]}" +
+          "<extra></extra>"
+      };
+
+      const layout = {
+        title: {
+          text: "Premier League 2024/25 Matchday Demand",
+          font: {
+            size: 24,
+            color: "#333"
+          },
+          y: 0.96
+        },
+
+        xaxis: {
+          title: {
+            text: "Stadium capacity",
+            standoff: 18
+          },
+          range: [5000, 80000],
+          tickformat: ",",
+          dtick: 10000,
+          zeroline: false,
+          gridcolor: "#eeeeee",
+          fixedrange: false
+        },
+
+        yaxis: {
+          title: {
+            text: "Average attendance",
+            standoff: 18
+          },
+          range: [5000, 80000],
+          tickformat: ",",
+          dtick: 10000,
+          zeroline: false,
+          gridcolor: "#eeeeee",
+          fixedrange: false
+        },
+
+        plot_bgcolor: "white",
+        paper_bgcolor: "white",
+
+        margin: {
+          l: 90,
+          r: 130,
+          t: 85,
+          b: 110
+        },
+
+        annotations: [
+          {
+            x: 0.5,
+            y: -0.18,
+            xref: "paper",
+            yref: "paper",
+            text: "Bubble size and color represent stadium utilization percentage. Filters keep the same axis scale for fair comparison.",
+            showarrow: false,
+            font: {
+              size: 12,
+              color: "#555"
+            }
+          }
+        ]
+      };
+
+      const config = {
+        responsive: true,
+        displayModeBar: true
+      };
+
+      Plotly.newPlot("chart", [trace], layout, config);
+    }
+
+    function resetFilters() {
+      document.getElementById("regionFilter").value = "All";
+      document.getElementById("capacityFilter").value = "All";
+      document.getElementById("demandFilter").value = "All";
+      drawChart();
+    }
+
+    document.getElementById("regionFilter").addEventListener("change", drawChart);
+    document.getElementById("capacityFilter").addEventListener("change", drawChart);
+    document.getElementById("demandFilter").addEventListener("change", drawChart);
+
+    drawChart();
+  </script>
+</body>
+</html>
